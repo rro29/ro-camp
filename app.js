@@ -23,9 +23,7 @@ const userRoutes = require('./routes/user');
 
 const User = require('./models/user');
 
-// const dbUrl = process.env.DB_URL;
-
-const dbUrl = 'mongodb://127.0.0.1:27017/yelp-camp';
+const dbUrl = process.env.DB_URL || 'mongodb://127.0.0.1:27017/yelp-camp';
 
 mongoose.connect(dbUrl)
 .then(() => console.log('Database connected')).catch(e => console.log(e));
@@ -43,13 +41,15 @@ app.use(methodOverride('_method'));
 app.use(morgan('dev'));
 app.use(mongoSanitize());
 
+const secret = process.env.SECRET || 'singwhileyoutakeapeeinyourneighborsbathroom';
+
 const store = MongoStore.create({
     mongoUrl: dbUrl,
-    secret: 'singwhileyoutakeapeeinyourneighborsbathroom',
+    secret,
     touchAfter: 24 * 3600,
-    ttl: 14 * 24 * 60 * 60, // = 14 days
-    autoRemove: 'native',
-    autoRemoveInterval: 10 // In minutes.
+    // ttl: 14 * 24 * 60 * 60, // = 14 days
+    // autoRemove: 'native',
+    // autoRemoveInterval: 10 // In minutes.
 });
 
 store.on('error', function(e){
@@ -59,7 +59,7 @@ store.on('error', function(e){
 const sessionConfig = {
     store,
     name: 'session',
-    secret: 'singwhileyoutakeapeeinyourneighborsbathroom',
+    secret,
     resave: false,
     saveUninitialized: true,
     cookie: {
@@ -151,7 +151,8 @@ app.use((err, req, res, next) => {
     res.status(statusCode).render('error', {err});
 });
 
+const port = process.env.PORT || 3000;
 
-app.listen(3000, () => {
-    console.log('Listening on port 3000');
+app.listen(port, () => {
+    console.log(`Listening on port ${port}`);
 })
